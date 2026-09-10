@@ -1,0 +1,6 @@
+venv
+__pycache__
+static/uploads/reports/*
+data/*
+.env
+vector_db/*

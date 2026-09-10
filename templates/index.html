@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediSight - AI Medical Assistant</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/android-chrome-512x512.png">
+    <link rel="manifest" href="/static/site.webmanifest">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+</head>
+<body>
+    <div class="disclaimer-overlay" id="disclaimerOverlay">
+        <div class="disclaimer-modal">
+            <div class="disclaimer-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 class="disclaimer-title">Important Medical Disclaimer</h2>
+            <div class="disclaimer-text">
+                <p><strong>Please read carefully before proceeding:</strong></p>
+                <ul>
+                    <li><strong>AI Assistant:</strong> MediSight is an artificial intelligence chatbot designed to provide general health information only.</li>
+                    <li><strong>Not Medical Advice:</strong> The information provided is not intended to replace professional medical advice, diagnosis, or treatment.</li>
+                    <li><strong>Consult Healthcare Professionals:</strong> Always seek the advice of qualified healthcare providers with any questions about medical conditions.</li>
+                    <li><strong>Emergency Situations:</strong> In case of medical emergencies, contact emergency services immediately.</li>
+                    <li><strong>No Liability:</strong> Use this tool at your own discretion and risk.</li>
+                </ul>
+                <p>By continuing, you acknowledge that you understand these limitations and agree to use MediSight responsibly.</p>
+            </div>
+            <div class="disclaimer-buttons">
+                <button class="disclaimer-btn secondary" onclick="closeApp()">I Disagree</button>
+                <button class="disclaimer-btn primary" onclick="acceptDisclaimer()">I Understand & Agree</button>
+            </div>
+        </div>
+    </div>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-stethoscope"></i>
+                <div>
+                    <h1>MediSight</h1>
+                    <div class="header-subtitle">AI Medical Assistant</div>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="#" onclick="toggleArticlesPanel()" id="articlesToggle"><i class="fas fa-newspaper"></i> Articles</a>
+                <a href="#" onclick="toggleRiskAnalysisPanel()" id="riskAnalysisToggle"><i class="fas fa-heartbeat"></i> Heart Risk Analysis</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="chat-container" id="chatContainer">
+            <div class="messages-area" id="messages-area">
+                <div class="welcome-message">
+                    <i class="fas fa-user-md"></i>
+                    <h2>Welcome to MediSight</h2>
+                    <p>I'm your AI medical assistant. Ask me about symptoms, conditions, medications, or upload a medical report for analysis. How can I help you today?</p>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <form id="chat-form" enctype="multipart/form-data">
+
+                    <div class="file-upload-section">
+                        <label for="report" class="file-upload-label">
+                            <i class="fas fa-file-medical"></i>
+                            <span>Click to upload medical report (PDF)</span>
+                        </label>
+                        <input type="file" id="report" name="report" accept=".pdf">
+                        <div class="file-selected" id="file-selected"></div>
+                        <div class="report-status" id="report-status">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="report-status-text">Report uploaded and available for this conversation</span>
+                            <button type="button" class="clear-report" onclick="clearReport()">Clear</button>
+                        </div>
+                    </div>
+
+                    <div class="input-container">
+                        <textarea 
+                            id="user_query" 
+                            name="user_query" 
+                            placeholder="Ask me about your health concerns, symptoms, or medical questions..."
+                            required
+                            rows="1"
+                        ></textarea>
+                        <button type="submit" class="send-button" id="send-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Articles Panel -->
+        <div class="articles-panel" id="articlesPanel">
+            <div class="articles-header">
+                <h2><i class="fas fa-newspaper"></i> Medical Articles</h2>
+                <button class="close-articles" onclick="toggleArticlesPanel()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="articles-search">
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        id="articleSearchInput" 
+                        placeholder="Search for medical articles..."
+                        onkeypress="handleArticleSearch(event)"
+                    >
+                    <button onclick="searchArticles()" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="articles-results" id="articlesResults">
+                <div class="search-placeholder">
+                    <i class="fas fa-search"></i>
+                    <p>Enter a medical topic to search for research articles</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Heart Risk Analysis Panel -->
+        <div class="risk-analysis-panel" id="riskAnalysisPanel">
+            <div class="risk-analysis-header">
+                <h2><i class="fas fa-heartbeat"></i> Heart Risk Analysis</h2>
+                <button class="close-risk-analysis" onclick="toggleRiskAnalysisPanel()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="risk-analysis-content">
+                <div class="risk-disclaimer">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p><strong>Disclaimer:</strong> This is a predictive tool for educational purposes only. Always consult with healthcare professionals for medical advice.</p>
+                </div>
+                
+                <form id="riskAnalysisForm" class="risk-form">
+                    <div class="form-group">
+                        <label for="age">Age:</label>
+                        <input type="number" id="age" name="age" min="1" max="120" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sex">Sex:</label>
+                        <select id="sex" name="sex" required>
+                            <option value="">Select</option>
+                            <option value="1">Male</option>
+                            <option value="0">Female</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chestPain">Chest Pain Type:</label>
+                        <select id="chestPain" name="chestPain" required>
+                            <option value="">Select</option>
+                            <option value="1">Typical Angina</option>
+                            <option value="2">Atypical Angina</option>
+                            <option value="3">Non-Anginal Pain</option>
+                            <option value="4">Asymptomatic</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bp">Blood Pressure (mmHg):</label>
+                        <input type="number" id="bp" name="bp" min="50" max="300" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cholesterol">Cholesterol (mg/dl):</label>
+                        <input type="number" id="cholesterol" name="cholesterol" min="50" max="600" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fbs">Fasting Blood Sugar > 120 mg/dl:</label>
+                        <select id="fbs" name="fbs" required>
+                            <option value="">Select</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="maxHR">Maximum Heart Rate:</label>
+                        <input type="number" id="maxHR" name="maxHR" min="60" max="220" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="exerciseAngina">Exercise Induced Angina:</label>
+                        <select id="exerciseAngina" name="exerciseAngina" required>
+                            <option value="">Select</option>
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="predict-btn">
+                        <i class="fas fa-chart-line"></i> Get Risk Analysis
+                    </button>
+                </form>
+                
+                <div class="risk-results" id="riskResults" style="display: none;">
+                    <div class="result-header">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>Risk Analysis Results</h3>
+                    </div>
+                    <div class="result-content" id="resultContent">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const messagesArea = document.getElementById('messages-area');
+        const userQueryInput = document.getElementById('user_query');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const fileInput = document.getElementById('report');
+        const fileSelected = document.getElementById('file-selected');
+        const reportStatus = document.getElementById('report-status');
+        let reportUploaded = false;
+
+        userQueryInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileSelected.textContent = `Selected: ${this.files[0].name}`;
+                fileSelected.style.display = 'block';
+            } else {
+                fileSelected.style.display = 'none';
+            }
+        });
+
+        chatForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(chatForm);
+            const userQuery = formData.get('user_query').trim();
+            
+            if (!userQuery) return;
+            
+            const welcomeMessage = document.querySelector('.welcome-message');
+            if (welcomeMessage) {
+                welcomeMessage.style.display = 'none';
+            }
+            
+            addMessage(userQuery, 'user');
+            userQueryInput.value = '';
+            userQueryInput.style.height = 'auto';
+            showTypingIndicator();
+            sendButton.disabled = true;
+
+            try {
+                const requestFormData = new FormData();
+                requestFormData.append('user_query', userQuery);
+                
+                if (fileInput.files.length > 0 && !reportUploaded) {
+                    requestFormData.append('report', fileInput.files[0]);
+                }
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    body: requestFormData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                hideTypingIndicator();
+                
+                if (result.error) {
+                    addMessage(`Error: ${result.error}`, 'ai');
+                } else if (result.answer) {
+                    addMessage(result.answer, 'ai');
+
+                    if (fileInput.files.length > 0 && !reportUploaded) {
+                        reportStatus.style.display = 'block';
+                        fileSelected.style.display = 'none';
+                        reportUploaded = true;
+
+                        document.getElementById('report-status-text').textContent = 
+                            `Report uploaded and available for this conversation`;
+                    }
+
+                    if (reportUploaded) {
+                        console.log('Report context maintained for question:', userQuery);
+                    }
+                } else {
+                    addMessage('I received an empty response. Please try again.', 'ai');
+                }
+
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('Sorry, I encountered an error while processing your request. Please try again.', 'ai');
+            } finally {
+                sendButton.disabled = false;
+
+                if (reportUploaded || fileInput.files.length === 0) {
+                    fileInput.value = '';
+                    fileSelected.style.display = 'none';
+                }
+            }
+        });
+
+        function addMessage(content, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            if (sender === 'ai') {
+                try {
+                    if (typeof marked !== 'undefined' && marked.parse) {
+                        messageContent.innerHTML = marked.parse(content);
+                    } else if (typeof marked !== 'undefined' && marked) {
+                        messageContent.innerHTML = marked(content);
+                    } else {
+                        let formatted = content
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                            .replace(/`(.*?)`/g, '<code>$1</code>')
+                            .replace(/\n\n/g, '</p><p>')
+                            .replace(/\n/g, '<br>');
+                        messageContent.innerHTML = '<p>' + formatted + '</p>';
+                    }
+                } catch (error) {
+                    let formatted = content
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/`(.*?)`/g, '<code>$1</code>')
+                        .replace(/\n\n/g, '</p><p>')
+                        .replace(/\n/g, '<br>');
+                    messageContent.innerHTML = '<p>' + formatted + '</p>';
+                }
+            } else {
+                messageContent.textContent = content;
+            }
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+
+            messagesArea.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'flex';
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        function scrollToBottom() {
+            setTimeout(() => {
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+            }, 100);
+        }
+
+        userQueryInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+            }
+        });
+
+        window.addEventListener('load', function() {
+            showDisclaimer();
+        });
+
+        async function clearReport() {
+            try {
+                const response = await fetch('/clear_session', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    reportStatus.style.display = 'none';
+                    reportUploaded = false;
+                    fileInput.value = '';
+                    fileSelected.style.display = 'none';
+                    addMessage('✓ Medical report has been cleared from this conversation.', 'ai');
+                }
+            } catch (error) {
+                console.error('Error clearing report:', error);
+            }
+        }
+
+        function showDisclaimer() {
+            const disclaimerOverlay = document.getElementById('disclaimerOverlay');
+            disclaimerOverlay.style.display = 'flex';
+        }
+
+        function acceptDisclaimer() {
+            const disclaimerOverlay = document.getElementById('disclaimerOverlay');
+            disclaimerOverlay.style.display = 'none';
+            userQueryInput.focus();
+            sessionStorage.setItem('disclaimerAccepted', 'true');
+        }
+
+        function closeApp() {
+            alert('Thank you for your understanding. Please consult with healthcare professionals for medical advice.');
+            window.close();
+            setTimeout(() => {
+                window.location.href = 'about:blank';
+            }, 1000);
+        }
+        window.addEventListener('load', function() {
+            const disclaimerAccepted = sessionStorage.getItem('disclaimerAccepted');
+            if (disclaimerAccepted === 'true') {
+                document.getElementById('disclaimerOverlay').style.display = 'none';
+            } else {
+                showDisclaimer();
+            }
+            
+            if (document.getElementById('disclaimerOverlay').style.display === 'none') {
+                userQueryInput.focus();
+            }
+        });
+
+        function toggleArticlesPanel() {
+            const articlesPanel = document.getElementById('articlesPanel');
+            const chatContainer = document.getElementById('chatContainer');
+            const isOpen = articlesPanel.classList.contains('open');
+
+            if (isOpen) {
+                articlesPanel.classList.remove('open');
+                chatContainer.classList.remove('compressed');
+            } else {
+                articlesPanel.classList.add('open');
+                chatContainer.classList.add('compressed');
+
+                const riskPanel = document.getElementById('riskAnalysisPanel');
+                if (riskPanel.classList.contains('open')) {
+                    riskPanel.classList.remove('open');
+                }
+            }
+        }
+
+        function handleArticleSearch(event) {
+            if (event.key === 'Enter') {
+                searchArticles();
+            }
+        }
+
+        async function searchArticles() {
+            const query = document.getElementById('articleSearchInput').value.trim();
+            const resultsContainer = document.getElementById('articlesResults');
+            
+            if (!query) {
+                resultsContainer.innerHTML = `
+                    <div class="search-placeholder">
+                        <i class="fas fa-search"></i>
+                        <p>Enter a medical topic to search for research articles</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsContainer.innerHTML = `
+                <div class="loading-articles">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Searching for articles...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/search_articles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const articles = await response.json();
+                displayArticles(articles);
+
+            } catch (error) {
+                console.error('Error searching articles:', error);
+                resultsContainer.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error searching for articles. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayArticles(articles) {
+            const resultsContainer = document.getElementById('articlesResults');
+            
+            if (!articles || articles.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-file-alt"></i>
+                        <p>No articles found for this search term.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const articlesHTML = articles.map(article => `
+                <div class="article-card" onclick="openArticle('${article.link}')">
+                    <div class="article-content">
+                        <h3 class="article-title">${article.title}</h3>
+                        <div class="article-meta">
+                            <span class="article-year">
+                                <i class="fas fa-calendar"></i> ${article.pubYear}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="article-arrow">
+                        <i class="fas fa-external-link-alt"></i>
+                    </div>
+                </div>
+            `).join('');
+
+            resultsContainer.innerHTML = articlesHTML;
+        }
+
+        function openArticle(link) {
+            if (link && link !== "No link available") {
+                window.open(link, '_blank');
+            }
+        }
+
+        function toggleRiskAnalysisPanel() {
+            const riskPanel = document.getElementById('riskAnalysisPanel');
+            const chatContainer = document.getElementById('chatContainer');
+            const isOpen = riskPanel.classList.contains('open');
+
+            if (isOpen) {
+                riskPanel.classList.remove('open');
+                chatContainer.classList.remove('compressed');
+            } else {
+                riskPanel.classList.add('open');
+                chatContainer.classList.add('compressed');
+
+                const articlesPanel = document.getElementById('articlesPanel');
+                if (articlesPanel.classList.contains('open')) {
+                    articlesPanel.classList.remove('open');
+                }
+            }
+        }
+
+        document.getElementById('riskAnalysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const riskData = {
+                'Age': parseInt(formData.get('age')),
+                'Sex': parseInt(formData.get('sex')),
+                'Chest pain type': parseInt(formData.get('chestPain')),
+                'BP': parseInt(formData.get('bp')),
+                'Cholesterol': parseInt(formData.get('cholesterol')),
+                'FBS over 120': parseInt(formData.get('fbs')),
+                'Max HR': parseInt(formData.get('maxHR')),
+                'Exercise angina': parseInt(formData.get('exerciseAngina'))
+            };
+
+            const submitBtn = this.querySelector('.predict-btn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(riskData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayRiskResults(result);
+
+            } catch (error) {
+                console.error('Error predicting risk:', error);
+                displayRiskResults({
+                    error: 'Failed to analyze risk. Please check your input and try again.'
+                });
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        function displayRiskResults(result) {
+            const resultsContainer = document.getElementById('riskResults');
+            const resultContent = document.getElementById('resultContent');
+            
+            if (result.error) {
+                resultContent.innerHTML = `
+                    <div class="result-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>${result.error}</p>
+                    </div>
+                `;
+            } else {
+                const riskLevel = result.result.includes('High') ? 'high' : 'low';
+                const riskIcon = riskLevel === 'high' ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle';
+                const riskColor = riskLevel === 'high' ? '#e74c3c' : '#27ae60';
+                
+                resultContent.innerHTML = `
+                    <div class="result-card" style="border-left: 4px solid ${riskColor};">
+                        <div class="result-risk-level">
+                            <i class="${riskIcon}" style="color: ${riskColor};"></i>
+                            <span style="color: ${riskColor}; font-weight: bold;">${result.result}</span>
+                        </div>
+                        <div class="result-disclaimer">
+                            <i class="fas fa-info-circle"></i>
+                            <p><strong>Important:</strong> This is a predictive model for educational purposes. Always consult healthcare professionals for proper medical evaluation and advice.</p>
+                        </div>
+                        <div class="lifestyle-suggestions-section">
+                            <button class="lifestyle-btn" onclick="getLifestyleSuggestions()">
+                                <i class="fas fa-lightbulb"></i> Get Lifestyle Suggestions
+                            </button>
+                        </div>
+                    </div>
+                `;
+                window.currentRiskData = {
+                    formData: getCurrentFormData(),
+                    prediction: result.result
+                };
+            }
+            
+            resultsContainer.style.display = 'block';
+            resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getCurrentFormData() {
+            const form = document.getElementById('riskAnalysisForm');
+            const formData = new FormData(form);
+            
+            return {
+                age: formData.get('age'),
+                sex: formData.get('sex') === '1' ? 'Male' : 'Female',
+                chestPainType: getChestPainText(formData.get('chestPain')),
+                bloodPressure: formData.get('bp'),
+                cholesterol: formData.get('cholesterol'),
+                fastingBloodSugar: formData.get('fbs') === '1' ? 'Yes (>120 mg/dl)' : 'No (≤120 mg/dl)',
+                maxHeartRate: formData.get('maxHR'),
+                exerciseAngina: formData.get('exerciseAngina') === '1' ? 'Yes' : 'No'
+            };
+        }
+
+        function getChestPainText(value) {
+            const chestPainTypes = {
+                '1': 'Typical Angina',
+                '2': 'Atypical Angina', 
+                '3': 'Non-Anginal Pain',
+                '4': 'Asymptomatic'
+            };
+            return chestPainTypes[value] || 'Unknown';
+        }
+
+        async function getLifestyleSuggestions() {
+            if (!window.currentRiskData) {
+                alert('No risk analysis data available. Please run the analysis first.');
+                return;
+            }
+
+            const lifestyleBtn = document.querySelector('.lifestyle-btn');
+            const originalText = lifestyleBtn.innerHTML;
+            lifestyleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Suggestions...';
+            lifestyleBtn.disabled = true;
+
+            try {
+                toggleRiskAnalysisPanel();
+
+                const { formData, prediction } = window.currentRiskData;
+                const response = await fetch('/lifestyle_suggestions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_data: formData,
+                        risk_level: prediction
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    addMessage(`Error: ${result.error}`, 'ai');
+                } else if (result.suggestions) {
+                    addMessage(result.suggestions, 'ai');
+                    setTimeout(() => {
+                        messagesArea.scrollTop = messagesArea.scrollHeight;
+                    }, 100);
+                } else {
+                    addMessage('I received an empty response. Please try again.', 'ai');
+                }
+
+            } catch (error) {
+                console.error('Error getting lifestyle suggestions:', error);
+                addMessage('Sorry, I encountered an error while generating lifestyle suggestions. Please try again.', 'ai');
+            } finally {
+                lifestyleBtn.innerHTML = originalText;
+                lifestyleBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
