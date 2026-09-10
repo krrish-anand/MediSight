@@ -181,8 +181,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Krrish Anand**
-- GitHub: [@ChaitanyaAgarwal72](https://github.com/krrish-anand)
-- LinkedIn: [chaitanya-agarwal7](https://www.linkedin.com/in/krrishanand)
+- GitHub: [@krrish-anand](https://github.com/krrish-anand)
+- LinkedIn: [krrishanand](https://www.linkedin.com/in/krrishanand)
 
 ## 🙏 Acknowledgments
 
