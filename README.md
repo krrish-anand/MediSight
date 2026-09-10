@@ -108,7 +108,7 @@ MediSight is an advanced AI medical assistant that provides intelligent health i
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/ChaitanyaAgarwal72/MediSight.git
+git clone https://github.com/krrish-anand/MediSight.git
 cd MediSight
 ```
 
